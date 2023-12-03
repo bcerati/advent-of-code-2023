@@ -15,6 +15,10 @@ func main() {
 	}
 
 	result := 0
+	result2 := 0
+	var gears map[string][]string
+	gears = make(map[string][]string)
+
 	lines := strings.Split(string(puzzle), "\n")
 
 	stringNumber := ""
@@ -23,7 +27,7 @@ func main() {
 			if unicode.IsDigit(char) {
 				stringNumber += string(char)
 			} else if stringNumber != "" {
-				if isPartOf(lines, stringNumber, idxLine, idxCol) {
+				if isPartOf(lines, stringNumber, idxLine, idxCol, &gears) {
 					n, _ := strconv.Atoi(stringNumber)
 					result += n
 				}
@@ -33,7 +37,16 @@ func main() {
 		}
 	}
 
-	fmt.Println(result)
+	for _, numbers := range gears {
+		if len(numbers) == 2 {
+			n1, _ := strconv.Atoi(numbers[0])
+			n2, _ := strconv.Atoi(numbers[1])
+
+			result2 += n1 * n2
+		}
+	}
+	fmt.Println("Part1 = ", result)
+	fmt.Println("Part2 = ", result2)
 }
 
 func charToInt(c rune) int {
@@ -42,7 +55,7 @@ func charToInt(c rune) int {
 	return n
 }
 
-func isPartOf(lines []string, number string, idxLine int, idxCol int) bool {
+func isPartOf(lines []string, number string, idxLine int, idxCol int, gears *map[string][]string) bool {
 	fromIdx := idxCol - len(number) - 1
 	toIdx := idxCol
 
@@ -60,25 +73,44 @@ func isPartOf(lines []string, number string, idxLine int, idxCol int) bool {
 		fromIdx = toIdx - len(number) - 1
 	}
 
+	symbols := ""
 	// checking line -1
 	if idxLine-1 > -1 {
-		if hasSymbol(lines[idxLine-1][fromIdx : toIdx+1]) {
+		symbols = lines[idxLine-1][fromIdx : toIdx+1]
+		if hasSymbol(symbols) {
+			appendForSymbols(number, symbols, idxLine-1, fromIdx, gears)
 			return true
 		}
 	}
 
 	// checking line + 1
 	if len(lines[idxLine+1]) > 0 {
-		if hasSymbol(lines[idxLine+1][fromIdx : toIdx+1]) {
+		symbols = lines[idxLine+1][fromIdx : toIdx+1]
+		if hasSymbol(symbols) {
+			appendForSymbols(number, symbols, idxLine+1, fromIdx, gears)
 			return true
 		}
 	}
 
+	symbols = string(lines[idxLine][fromIdx : toIdx+1])
 	if hasSymbol(string(lines[idxLine][fromIdx : toIdx+1])) {
+		appendForSymbols(number, symbols, idxLine, fromIdx, gears)
 		return true
 	}
 
 	return false
+}
+
+func appendForSymbols(number string, symbols string, idxLine int, idxCol int, gears *map[string][]string) {
+	idxLineStr := strconv.Itoa(idxLine)
+
+	for k, c := range symbols {
+		if string(c) == "*" {
+			idxColStr := strconv.Itoa(idxCol + k)
+
+			(*gears)[idxLineStr+";"+idxColStr] = append((*gears)[idxLineStr+";"+idxColStr], number)
+		}
+	}
 }
 
 func hasSymbol(str string) bool {
