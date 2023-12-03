@@ -25,8 +25,6 @@ func main() {
 			continue
 		}
 
-		gameNumber, _ := strconv.Atoi(matches[1])
-
 		regexRed := regexp.MustCompile("([0-9]+) red")
 		matchesRed := regexRed.FindAllStringSubmatch(line, -1)
 
@@ -36,39 +34,24 @@ func main() {
 		regexBlue := regexp.MustCompile("([0-9]+) blue")
 		matchesBlue := regexBlue.FindAllStringSubmatch(line, -1)
 
-		addToResult := gameNumber
-		for _, set := range matchesRed {
-			if asMoreThanItShould(set, 12) {
-				addToResult = 0
-				break
-			}
-		}
+		maxRed := getMax(matchesRed)
+		maxGreen := getMax(matchesGreen)
+		maxBlue := getMax(matchesBlue)
 
-		for _, set := range matchesGreen {
-			if asMoreThanItShould(set, 13) {
-				addToResult = 0
-				break
-			}
-		}
-
-		for _, set := range matchesBlue {
-			if asMoreThanItShould(set, 14) {
-				addToResult = 0
-				break
-			}
-		}
-
-		result += addToResult
+		result += maxRed * maxGreen * maxBlue
 	}
 
 	fmt.Println(result)
 }
 
-func asMoreThanItShould(matches []string, n int) bool {
-	if len(matches) > 1 {
-		v, _ := strconv.Atoi(matches[1])
-		return !(v <= n)
-	}
+func getMax(matches [][]string) int {
+	max := 1
+	for _, game := range matches {
+		n, _ := strconv.Atoi(game[1])
 
-	panic("This should not happen!")
+		if n > max {
+			max = n
+		}
+	}
+	return max
 }
